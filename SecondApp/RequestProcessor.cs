@@ -1,28 +1,39 @@
-﻿using MassTransit;
-using System;
-using System.Configuration;
-using MassTransit.Util;
+﻿using System;
 using Shared;
 using log4net;
-using MassTransit.Log4NetIntegration.Logging;
 using System.Numerics;
 
 namespace SecondApp
 {
-    public static class RequestProcessor
+    public class RequestProcessor : IRequestProcessor
     {
-        public static string ProcessRequest(string number, ILog log)
+        public RequestProcessor(IFibonacciHelper fibonacciHelper, ILog log)
+        {
+            _log = log;
+            _fibonacciHelper = fibonacciHelper;
+        }
+        public string ProcessRequest(string number)
         {
             try
             {
-                var result = Fibonacci.GetNextNumber(BigInteger.Parse(number), log);
+                _log.Info("Processing the request");
+                _log.Debug($"Number is: {number}");
+                var result = _fibonacciHelper.GetNextNumber(BigInteger.Parse(number));
                 return result.ToString();
             }
             catch (Exception exception)
             {
-                log.Error("Failed to process request", exception);
+                _log.Error("Failed to process request", exception);
                 throw;
             }
         }
+
+        private ILog _log;
+        private IFibonacciHelper _fibonacciHelper;
+    }
+
+    public interface IRequestProcessor
+    {
+        string ProcessRequest(string number);
     }
 }

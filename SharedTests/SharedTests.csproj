@@ -60,17 +60,17 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="FibonacciTests.cs" />
+    <Compile Include="SharedTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fibonacci\Shared.csproj">
-      <Project>{8F92DE4F-597B-4C88-82BC-BEA1B3D06337}</Project>
+    <ProjectReference Include="..\Shared\Shared.csproj">
+      <Project>{8f92de4f-597b-4c88-82bc-bea1b3d06337}</Project>
       <Name>Shared</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

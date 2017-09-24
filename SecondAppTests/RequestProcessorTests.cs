@@ -1,11 +1,7 @@
 ﻿using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecondApp;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Shared;
 
 namespace SecondApp.Tests
 {
@@ -15,15 +11,17 @@ namespace SecondApp.Tests
         [TestMethod()]
         public void ProcessRequestTestDefault()
         {
-            Assert.AreEqual("2", RequestProcessor.ProcessRequest("1", _log));
+            Assert.AreEqual("2", requestProcessor.ProcessRequest("1"));
         }
 
         [TestMethod()]
         [ExpectedException(typeof(Exception))]
         public void ProcessRequestTestException()
         {
-            Assert.AreEqual("2", RequestProcessor.ProcessRequest("4", _log));
+            Assert.AreEqual("2", requestProcessor.ProcessRequest("4"));
         }
+
         static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        RequestProcessor requestProcessor = new RequestProcessor(new FibonacciHelper(_log), _log);
     }
 }

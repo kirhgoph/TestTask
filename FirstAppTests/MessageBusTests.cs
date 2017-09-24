@@ -1,31 +1,29 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FirstApp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
+using Shared;
+using System.Numerics;
+using Moq;
 
 namespace FirstApp.Tests
 {
     [TestClass()]
     public class MessageBusTests
     {
-        [TestMethod()]
-        public void ProcessMessageTestDefault()
+        [TestInitialize]
+        public void TestInitialization()
         {
-            var requestSender = new MockRestServiceRequestSender();
-            Assert.AreEqual("2", MessageBus.ProcessMessage(requestSender, "1", _log));
+            _fibonacciHelper.Setup(x => x.GetNextNumber(new BigInteger(1))).Returns(new BigInteger(2));
+            _fibonacciHelper.Setup(x => x.GetNextNumber(new BigInteger(2))).Returns(new BigInteger(3));
         }
 
         [TestMethod()]
-        [ExpectedException(typeof(Exception))]
-        public void ProcessMessageTestException()
+        public void ProcessMessageTestDefault()
         {
-            var requestSender = new MockRestServiceRequestSender();
-            Assert.AreEqual("2", MessageBus.ProcessMessage(requestSender, "4", _log));
+            var _messageBus = new MessageBus(_fibonacciHelper.Object, new RestServiceRequestSender(_log, "http://uri"), _log);
+            Assert.AreEqual("2", _messageBus.ProcessMessage("1"));
         }
+
+        Mock<IFibonacciHelper> _fibonacciHelper = new Mock<IFibonacciHelper>();
         static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     }
 }

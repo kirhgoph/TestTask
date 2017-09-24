@@ -1,41 +1,35 @@
-﻿using RestSharp;
+﻿using log4net;
+using RestSharp;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FirstApp
 {
-    public class RestServiceRequestSender : IRestServiceRequestSender
+    public class RestServiceRequestSender : RestClient, IRestServiceRequestSender
     {
-        public RestServiceRequestSender(RestClient restClient)
+        public RestServiceRequestSender(ILog log, string serviceAddress)
         {
-            _restClient = restClient;
+            BaseUrl = new Uri(serviceAddress);
+            _log = log;
         }
 
-        public RestRequest SendRequest(BigInteger requestBody)
+        public async Task<RestRequest> SendRequest(BigInteger requestBody)
         {
+            _log.Debug($"Request body:{requestBody}");
             var request = new RestRequest(requestBody.ToString(), Method.GET);
-            _restClient.ExecuteAsync(request, response => { });
+            var cancellationTokenSource = new CancellationTokenSource();
+            _log.Info($"Sending request");
+            var handle = await ExecuteTaskAsync(request, cancellationTokenSource.Token);
             return request;
         }
-        private RestClient _restClient;
+
+        private ILog _log;
     }
 
-    public class MockRestServiceRequestSender : IRestServiceRequestSender
+    public interface IRestServiceRequestSender : IRestClient
     {
-        public RestRequest SendRequest(BigInteger requestBody)
-        {
-            var request = new RestRequest(requestBody.ToString(), Method.GET);
-            request.Resource = requestBody.ToString();
-            return request;
-        }
-    }
-
-    public interface IRestServiceRequestSender
-    {
-        RestRequest SendRequest(BigInteger requestBody);
+        Task<RestRequest> SendRequest(BigInteger requestBody);
     }
 }

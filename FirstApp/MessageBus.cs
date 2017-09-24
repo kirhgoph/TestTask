@@ -1,7 +1,6 @@
 ﻿using log4net;
 using MassTransit;
 using MassTransit.Log4NetIntegration.Logging;
-using RestSharp;
 using Shared;
 using System;
 using System.Configuration;
@@ -10,52 +9,72 @@ using System.Threading.Tasks;
 
 namespace FirstApp
 {
-    public class MessageBus
+    public class MessageBus : IMessageBus
     {
-        public static IBusControl InitializeMessageBus(IRestServiceRequestSender requestSender, ILog log)
+        public MessageBus(IFibonacciHelper fibonacci, IRestServiceRequestSender requestSender, ILog log)
+        {
+            _fibonacci = fibonacci;
+            _requestSender = requestSender;
+            _log = log;
+        }
+
+        public IBusControl InitializeMessageBus()
         {
             Log4NetLogger.Use();
-            var bus = Bus.Factory.CreateUsingRabbitMq(sbc =>
+            _log.Info("Creating MessageBus");
+            var busControl = Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
+                _log.Debug("Creating Host");
                 var host = sbc.Host(new Uri(ConfigurationManager.AppSettings["Host"]), h =>
                 {
                     h.Username("guest");
                     h.Password("guest");
                 });
-
+                _log.Debug("Creating ReceiveEndpoint");
                 sbc.ReceiveEndpoint(host, "queue", ep =>
                 {
-                    ep.Handler<MyMessage>(context =>
+                    ep.Handler<MassTransitMessage>(context =>
                     {
                         return Task.Run(() =>
                         {
-                            requestSender.SendRequest(
+                            _requestSender.SendRequest(
                                 BigInteger.Parse(
-                                    ProcessMessage(requestSender, context.Message.Text, log
+                                    ProcessMessage(context.Message.Text
                                     )));
                         });
                     });
                 });
             });
+            _log.Info("MessageBus ready");
 
-            bus.Start();
+            busControl.Start();
+            _log.Info("MessageBus started");
 
-            return bus;
+            return busControl;
         }
-        public static string ProcessMessage(IRestServiceRequestSender requestSender, string messageText, ILog log)
+        public string ProcessMessage(string messageText)
         {
-            log.Info($"Current number is {messageText}");
+            _log.Info($"Current number is {messageText}");
             try
             {
-                var result = Fibonacci.GetNextNumber(BigInteger.Parse(messageText), log);
-                log.Debug($"Next number is {result}");
+                var result = _fibonacci.GetNextNumber(BigInteger.Parse(messageText));
+                _log.Debug($"Next number is {result}");
                 return result.ToString();
             }
             catch (Exception exception)
             {
-                log.Error("Exception calculating next Fibonacci number", exception);
+                _log.Error("Exception calculating next Fibonacci number", exception);
                 throw;
             }
         }
+        private IFibonacciHelper _fibonacci;
+        private IRestServiceRequestSender _requestSender;
+        private ILog _log;
+    }
+
+    public interface IMessageBus
+    {
+        IBusControl InitializeMessageBus();
+        string ProcessMessage(string messageText);
     }
 }

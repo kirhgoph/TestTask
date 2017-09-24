@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Configuration;
-using RestSharp;
+using Shared;
 using MassTransit;
 using log4net;
 using StructureMap;
@@ -18,11 +18,13 @@ namespace FirstApp
             {
                 _log.Info("Application start");
 
-                if (!CommandLineArgumentsParser.ParseCommandLineArguments(args, ref _parallelThreadsNumber, _log)) return;
-
                 _log.Info("Build IoC container");
-                var container = new Container(_ =>
+                _container = new Container(_ =>
                 {
+                    _.For<ILog>().Use(_log);
+                    _.For<IFibonacciHelper>().Use<FibonacciHelper>().Singleton();
+                    _.For<IRestServiceRequestSender>().Use<RestServiceRequestSender>().Ctor<string>("serviceAddress").
+                        Is(ConfigurationManager.AppSettings["RestServiceAddress"]);
                     _.Scan(x =>
                     {
                         x.TheCallingAssembly();
@@ -30,15 +32,23 @@ namespace FirstApp
                     });
                 });
 
+                var commandLineArgumentsParser = _container.GetInstance<ICommandLineArgumentsParser>();
+                if (!commandLineArgumentsParser.ParseCommandLineArguments(args, ref _parallelThreadsNumber))
+                    return;
+
                 _log.Info("Creating REST client");
-                _restClient = new RestClient(ConfigurationManager.AppSettings["RestServiceAddress"]);
-                _requestSender = new RestServiceRequestSender(_restClient);
-                /*_requestSender = _container.GetInstance<IRestServiceRequestSender>()
-                    .ShouldBeOfType<RestServiceRequestSender>
-                    .RestClient.ShouldBe(_restClient);*/
+                _requestSender = _container.GetInstance<IRestServiceRequestSender>();
 
                 _log.Info("Initializing Message Bus");
-                _bus = MessageBus.InitializeMessageBus(_requestSender, _log);
+                var messageBus = _container.GetInstance<IMessageBus>();
+                _busControl = messageBus.InitializeMessageBus();
+
+                _container.Configure(cfg =>
+                {
+                    cfg.For<IBusControl>()
+                        .Use(_busControl);
+                    cfg.Forward<IBusControl, IBus>();
+                });
 
                 Console.WriteLine("Press Enter when the SecondApp is ready");
                 Console.ReadLine();
@@ -57,7 +67,7 @@ namespace FirstApp
                 try
                 {
                     _log.Info("Stopping bus...");
-                    _bus.Stop();
+                    _busControl.Stop();
                 }
                 catch (Exception exception)
                 {
@@ -73,9 +83,8 @@ namespace FirstApp
         }
 
         static IRestServiceRequestSender _requestSender;
-        static RestClient _restClient;
         static int _parallelThreadsNumber = 1;
-        static IBusControl _bus;
+        static IBusControl _busControl;
         static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         static Container _container;
     }

@@ -5,16 +5,17 @@ using System;
 namespace Shared.Tests
 {
     [TestClass()]
-    public class FibonacciTests
+    public class SharedTests
     {
         [TestMethod()]
         public void GetNextNumberTestPositive()
         {
-            var result = Fibonacci.GetNextNumber(1, _log);
+            var fibonacci = new FibonacciHelper(_log);
+            var result = fibonacci.GetNextNumber(1);
             Assert.AreEqual(2, result);
-            result = Fibonacci.GetNextNumber(2, _log);
+            result = fibonacci.GetNextNumber(2);
             Assert.AreEqual(3, result);
-            result = Fibonacci.GetNextNumber(3, _log);
+            result = fibonacci.GetNextNumber(3);
             Assert.AreEqual(5, result);
         }
 
@@ -22,13 +23,14 @@ namespace Shared.Tests
         [ExpectedException(typeof(Exception))]
         public void GetNextNumberTestNegative()
         {
-            var result = Fibonacci.GetNextNumber(1, _log);
+            var fibonacci = new FibonacciHelper(_log);
+            var result = fibonacci.GetNextNumber(1);
             Assert.AreEqual(2, result);
-            result = Fibonacci.GetNextNumber(2, _log);
+            result = fibonacci.GetNextNumber(2);
             Assert.AreEqual(3, result);
-            result = Fibonacci.GetNextNumber(3, _log);
+            result = fibonacci.GetNextNumber(3);
             Assert.AreEqual(5, result);
-            result = Fibonacci.GetNextNumber(4, _log);
+            result = fibonacci.GetNextNumber(4);
         }
         static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     }

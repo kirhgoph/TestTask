@@ -7,8 +7,8 @@
     <ProjectGuid>{8F92DE4F-597B-4C88-82BC-BEA1B3D06337}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fibonacci</RootNamespace>
-    <AssemblyName>Fibonacci</AssemblyName>
+    <RootNamespace>Shared</RootNamespace>
+    <AssemblyName>Shared</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

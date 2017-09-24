@@ -1,11 +1,7 @@
-﻿using log4net;
-using Owin;
+﻿using Owin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Http;
+using WebApi.StructureMap;
 
 namespace SecondApp
 {
@@ -17,16 +13,14 @@ namespace SecondApp
             {
                 HttpConfiguration config = new HttpConfiguration();
                 config.MapHttpAttributeRoutes();
+                config.UseStructureMap<ControllerRegistry>();
                 appBuilder.UseWebApi(config);
                 log4net.Config.XmlConfigurator.Configure();
-                _log.Info("ApiController configuration succeded");
             }
             catch (Exception exception)
             {
-                _log.Error("ApiController configuration failed", exception);
                 throw exception;
             }
         }
-        static readonly ILog _log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     }
 }
