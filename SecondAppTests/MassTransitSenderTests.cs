@@ -5,6 +5,7 @@ using Shared;
 using MassTransit;
 using System.Threading;
 using System;
+using System.Threading.Tasks;
 
 namespace SecondApp.Tests
 {
@@ -18,7 +19,7 @@ namespace SecondApp.Tests
             var text = String.Empty;
             var token = new CancellationTokenSource().Token;
             mockBus.Setup(b => b.Publish(It.IsAny<MassTransitMessage>(), It.IsAny<CancellationToken>()))
-                .Callback<MassTransitMessage, CancellationToken>((m,c) => text = m.Text);
+                .Callback<MassTransitMessage, CancellationToken>((m,c) => text = m.Text).Returns(Task.FromResult(false));
             var sender = new MassTransitSender(_log, mockBus.Object);
             sender.SendMessage(new MassTransitMessage { Text = "1" });
             mockBus.Verify(b => b.Publish(It.IsAny<MassTransitMessage>(), It.IsAny<CancellationToken>()), Times.Once());

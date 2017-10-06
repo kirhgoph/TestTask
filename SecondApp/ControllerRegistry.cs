@@ -1,4 +1,5 @@
 ﻿using log4net;
+using MassTransit;
 using Shared;
 using StructureMap;
 using System;
@@ -19,6 +20,9 @@ namespace SecondApp
                     scan.WithDefaultConventions();
                 });
             For<ILog>().Use(Program._log);
+            For<IRequestProcessor>().Use<RequestProcessor>();
+            For<IMassTransitSender>().Use<MassTransitSender>().Singleton();
+            For<IBusControl>().Use(Program.CreateBus());
             For<IFibonacciHelper>().Use<FibonacciHelper>().Singleton();
         }
     }

@@ -18,7 +18,10 @@ namespace Shared
             _log.Debug("Number is positive. Proceeding");
             lock ("newLock")
             {
-                var index = cache.FindLastIndex(element => element == number);
+                var index = -1;
+                var i = cache.Count - 1;
+                while (cache[i] > number) i--;
+                if (cache[i] == number) index = i;
                 _log.Debug($"Index of given number is:{index}");
                 if (index != -1 && index < cache.Count - 1) return cache[index + 1];
                 _log.Debug($"Number was not found in cache");
